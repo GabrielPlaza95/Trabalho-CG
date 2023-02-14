@@ -178,7 +178,7 @@ void drawCylinder(float diameter, float lenght) {
 	}
 	else
 		gluQuadricTexture(quadCylinder, 0);
-	gluCylinder(quadCylinder, diameter, diameter, lenght, 40.0, lenght*30.0);
+	gluCylinder(quadCylinder, diameter / 2., diameter / 2., lenght, 40.0, lenght*30.0);
 }
 
 void drawCone(float diameter, float lenght) {
@@ -190,7 +190,7 @@ void drawCone(float diameter, float lenght) {
 	}
 	else
 		gluQuadricTexture(quadCylinder, 0);
-	gluCylinder(quadCylinder, diameter, 0, lenght, 40.0, lenght*30.0);
+	gluCylinder(quadCylinder, diameter / 2., 0, lenght, 40.0, lenght*30.0);
 }
 
 void drawDisk(float diameterInner, float diameterOuter) {
@@ -202,7 +202,7 @@ void drawDisk(float diameterInner, float diameterOuter) {
 	}
 	else
 		gluQuadricTexture(quadCylinder, 0);
-	gluDisk(quadCylinder, diameterInner, diameterOuter, 40.0, 30.0);
+	gluDisk(quadCylinder, diameterInner / 2., diameterOuter / 2., 40.0, 30.0);
 }
 
 void drawSphere(float diameter) {
@@ -214,7 +214,7 @@ void drawSphere(float diameter) {
 	}
 	else
 		gluQuadricTexture(quadSphere, 0);
-	gluSphere(quadSphere, diameter, 40.0, 40.0);
+	gluSphere(quadSphere, diameter / 2., 40.0, 40.0);
 }
 
 
@@ -228,8 +228,9 @@ void drawBase(float heightBase, float diameterBase) {
 
 void drawBody(float sphereDiameter, float cylinderHeight, float cylinderDiameter) {
 	glPushMatrix();
+		glTranslatef(0., 0., sphereDiameter / 2);
 		drawSphere(sphereDiameter);
-		glTranslatef(0., 0., sphereDiameter);
+		glTranslatef(0., 0., sphereDiameter / 2);
 		drawDisk(0., cylinderDiameter);
 		drawCylinder(cylinderDiameter, cylinderHeight);
 		glTranslatef(0., 0., cylinderHeight);
@@ -237,7 +238,9 @@ void drawBody(float sphereDiameter, float cylinderHeight, float cylinderDiameter
 	glPopMatrix();
 }
 
-void drawHead(float sphereDiameter, float cylinderHeight, float cylinderDiameter) {
+void drawHead(float sphereDiameter, float cylinderHeight) {
+	float cylinderDiameter = 0.6;
+	
 	glPushMatrix();
 		drawCylinder(cylinderDiameter, cylinderHeight);
 		glTranslatef(0., 0., cylinderHeight);
@@ -247,8 +250,8 @@ void drawHead(float sphereDiameter, float cylinderHeight, float cylinderDiameter
 
 
 void drawClaw(Claw c) {
-	float diameterCylinder = 0.3;
-	float diameterSphere = 0.4;
+	float diameterCylinder = 0.6;
+	float diameterSphere = 0.8;
 	float sizeArm = 4.5;
 	float sizeForearm = 3.0;
 	float sizeHand = 2.0;
@@ -323,7 +326,15 @@ void drawClaw(Claw c) {
 }
 
 void drawScene(void) {
-
+	float heightBase = 0.5;
+	float diameterBase = 15.0;
+	float diameterBody = 10.0;
+	float diameterWheel = diameterBody * 0.5;
+	float heightBody = 7.5;
+	float diameterHead = 3.5;
+	float heightNeck = 2.5;
+	
+	
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glEnable(GL_TEXTURE_2D);
@@ -343,25 +354,29 @@ void drawScene(void) {
 	// drawing color
 	glColor3f(1., 1., 1.);
 
-	drawBase(.5, 7.5);
+	drawBase(heightBase, diameterBase);
 	
-	glTranslatef(0., 0., 3.);
+	glTranslatef(0., 0., heightBase);
 	
-	drawBody(2.5, 7.5, 5.);
-
-	glTranslatef(0., 0., 3.);
+	drawBody(diameterWheel, heightBody, diameterBody);
+	
+	glTranslatef(0., 0., heightBody + diameterWheel);
 	
 	glPushMatrix();
-		glTranslatef(0., +5., 8.);
+		glTranslatef(0., +0.5 * diameterBody, -0.35 * heightBody);
 		glRotatef(-90., 1., 0., 0.);
 		drawClaw(leftClaw);
 	glPopMatrix();
 	
 	glPushMatrix();
-		glTranslatef(0., -5., 8.);
+		glTranslatef(0., -0.5 * diameterBody, -0.35 * heightBody);
 		glRotatef(90., 1., 0., 0.);
 		drawClaw(rightClaw);
 	glPopMatrix();
+	
+	//glTranslatef(0., 0., heightBody * 0.25);
+	
+	drawHead(diameterHead, heightNeck);
 	
 	glutSwapBuffers();
 }
