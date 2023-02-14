@@ -28,6 +28,11 @@ bool textureOn = true;
 float viewAngleX = 0.0;
 float viewAngleZ = 15.0;
 
+static long tick = 0;
+bool dancing = 0;
+int danceStart = 0;
+
+
 struct Claw {
 	float angleArm, angleForearm, angleClamp;
 };
@@ -111,6 +116,7 @@ void enableLigthing(void) {
 
 void handleKeypress(unsigned char key, int x, int y) {
 	Claw *left = &leftClaw;
+	Claw *right = &rightClaw;
 	
 	switch (key) {
 	case 27: //Escape key
@@ -129,6 +135,12 @@ void handleKeypress(unsigned char key, int x, int y) {
 		break;
 	case 't': //Use texture or not
 		textureOn = !textureOn;
+		break;
+	case 'c': //Start Coreography
+		dancing = 1;
+		danceStart = tick;
+		left->angleClamp = 0;
+		right->angleClamp = 0;
 		break;
 	case '1': //Increase arm angle
 		left->angleArm += 3;
@@ -381,7 +393,42 @@ void drawScene(void) {
 	glutSwapBuffers();
 }
 
-int main(int argc, char** argv) {
+float dth = 3.;
+
+void dance(void) {
+	Claw *left = &leftClaw;
+	Claw *right = &rightClaw;
+	
+	if (dancing == 0) return;
+	
+	left->angleClamp += dth;
+	right->angleClamp += dth;
+	
+	if (left->angleClamp > 60 || right->angleClamp > 60)
+		dth = -3.;
+	
+	if (left->angleClamp < 0 || right->angleClamp < 0)
+		dth = 3.;
+	
+	int elapsed = tick - danceStart;
+	
+	if (elapsed > 120) {
+		dancing = 0;
+		left->angleClamp = 0;
+		right->angleClamp = 0;
+	}
+	
+	glutPostRedisplay();
+}
+
+int dt = 1000 / 60; // 60 FPS
+
+void tickTimer(int _) {
+	glutTimerFunc(dt, tickTimer, 0);
+	tick++;
+}
+
+int main(int argc, char** argv) {	
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
 	glutInitWindowSize(800, 800);
@@ -392,6 +439,8 @@ int main(int argc, char** argv) {
 	glutKeyboardFunc(handleKeypress);
 	glutMouseFunc(handleButtonPress);
 	glutReshapeFunc(handleResize);
+	glutTimerFunc(dt, tickTimer, 0);
+	glutIdleFunc(dance);
 
 	enableLigthing();
 	glutMainLoop();
