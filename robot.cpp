@@ -28,10 +28,10 @@ bool textureOn = true;
 float viewAngleX = 0.0;
 float viewAngleZ = 15.0;
 
-static long tick = 0;
+int tick = 0;
+
 bool dancing = 0;
 int danceStart = 0;
-
 
 struct Claw {
 	float angleArm, angleForearm, angleClamp;
@@ -48,6 +48,8 @@ Claw rightClaw = {
 	.angleForearm = 90.,
 	.angleClamp = 0.
 };
+
+float clampIncrement = 3.;
 
 //makes the image into a texture, and returns the id of the texture
 GLuint loadTexture(char *filename) {
@@ -111,67 +113,100 @@ void enableLigthing(void) {
 	
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
-	fov = 70;
+	fov = 50;
+}
+
+void moveClamp(Claw *claw) {
+	
+	if (claw->angleClamp >= 60)
+		clampIncrement = -3.;
+	
+	if (claw->angleClamp <= 0)
+		clampIncrement = +3.;
+
+	claw->angleClamp += clampIncrement;
+}
+
+void handleSpecialKeyPress(int key, int x, int y) {
+	Claw *left = &leftClaw;
+	Claw *right = &rightClaw;
+	
+	//Comandos de câmera
+	switch (key) {
+	case GLUT_KEY_UP: //Decrease view angle z axis
+		viewAngleZ = fmax(viewAngleZ - 3, 0);
+		break;
+	case GLUT_KEY_LEFT: //Decrease view angle x axis
+		viewAngleX = fmod(viewAngleX + 360 - 3, 360);
+		break;
+	case GLUT_KEY_DOWN: //Increase view angle z axis
+		viewAngleZ = fmin(viewAngleZ + 3, 180);
+		break;
+	case GLUT_KEY_RIGHT: //Increase view angle x axis
+		viewAngleX = fmod(viewAngleX + 3, 360);
+		break;
+	}
+	glutPostRedisplay();
 }
 
 void handleKeypress(unsigned char key, int x, int y) {
 	Claw *left = &leftClaw;
 	Claw *right = &rightClaw;
 	
+	//Comandos de câmera e encerramento
 	switch (key) {
 	case 27: //Escape key
 		exit(0);
-	case 's': //Increase view angle z axis
-		if (viewAngleZ < 180) viewAngleZ += 3;
-		break;
-	case 'w': //Decrease view angle z axis
-		if (viewAngleZ > 0) viewAngleZ -= 3;
-		break;
-	case 'd': //Decrease view angle x axis
-		if (viewAngleX > 0) viewAngleX -= 3;
-		break;
-	case 'a': //Increase view angle x axis
-		if (viewAngleX < 180) viewAngleX += 3;
-		break;
 	case 't': //Use texture or not
 		textureOn = !textureOn;
 		break;
-	case 'c': //Start Coreography
+	}
+	
+	if (dancing) {
+		glutPostRedisplay();
+		return;
+	}
+	
+	//Comandos de Movimentação do Robô
+	switch (key) {
+	case 13: //Enter starts choreography
 		dancing = 1;
 		danceStart = tick;
 		left->angleClamp = 0;
 		right->angleClamp = 0;
 		break;
-	case '1': //Increase arm angle
-		left->angleArm += 3;
-		if (left->angleArm >= 360) left->angleArm = 0;
+	case '1': //Increase left arm angle
+		left->angleArm = fmod(left->angleArm + 3, 360);
 		break;
-	case '2': //Decrease arm angle
-		left->angleArm -= 3;
-		if (left->angleArm <= 0) left->angleArm = 360;
+	case '2': //Decrease left arm angle
+		left->angleArm = fmod(left->angleArm + 360 - 3, 360);
 		break;
-	case '3': //Increase forearm angle
-		if (left->angleForearm < 90) left->angleForearm += 3;
+	case '3': //Increase left forearm angle
+		left->angleForearm = fmin(left->angleForearm + 3, +90);
 		break;
-	case '4': //Decrease forearm angle
-		if (left->angleForearm > -90) left->angleForearm -= 3;
+	case '4': //Decrease left forearm angle
+		left->angleForearm = fmax(left->angleForearm - 3, -90);
 		break;
-	case '5': //Increase clamp angle y axis
-		if (left->angleClamp < 60) left->angleClamp += 3;
+	case '5':
+		moveClamp(left);
 		break;
-	case '6': //Decrease clamp angle y axis
-		if (left->angleClamp > 0) left->angleClamp -= 3;
+	case '6':
+		moveClamp(right);
 		break;
 	}
 	glutPostRedisplay();
 }
 
 void handleButtonPress(int button, int state, int x, int y) {
-	if (button == GLUT_LEFT_BUTTON) // Zoom-in
-		if (state == GLUT_DOWN) { if (fov >= 10) fov -= 5; }
-	if (button == GLUT_RIGHT_BUTTON) // Zoom-out
-		if (state == GLUT_DOWN) { if (fov <= 130) fov += 5; }
-	glutPostRedisplay(); // Redesenha
+	// Zoom-in
+	if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN && fov >= 25)
+		fov -= 5;
+	
+	// Zoom-out
+	if (button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN && fov <= 75)
+		fov += 5;
+	
+	glutPostRedisplay();
 }
 
 void handleResize(int w, int h) {
@@ -229,7 +264,6 @@ void drawSphere(float diameter) {
 	gluSphere(quadSphere, diameter / 2., 40.0, 40.0);
 }
 
-
 void drawBase(float heightBase, float diameterBase) {
 	glPushMatrix();
 		drawCylinder(diameterBase, heightBase);
@@ -259,7 +293,6 @@ void drawHead(float sphereDiameter, float cylinderHeight) {
 		drawSphere(sphereDiameter);
 	glPopMatrix();
 }
-
 
 void drawClaw(Claw c) {
 	float diameterCylinder = 0.6;
@@ -393,22 +426,14 @@ void drawScene(void) {
 	glutSwapBuffers();
 }
 
-float dth = 3.;
-
 void dance(void) {
 	Claw *left = &leftClaw;
 	Claw *right = &rightClaw;
 	
 	if (dancing == 0) return;
 	
-	left->angleClamp += dth;
-	right->angleClamp += dth;
-	
-	if (left->angleClamp > 60 || right->angleClamp > 60)
-		dth = -3.;
-	
-	if (left->angleClamp < 0 || right->angleClamp < 0)
-		dth = 3.;
+	moveClamp(left);
+	moveClamp(right);
 	
 	int elapsed = tick - danceStart;
 	
@@ -438,6 +463,7 @@ int main(int argc, char** argv) {
 	glutDisplayFunc(drawScene);
 	glutKeyboardFunc(handleKeypress);
 	glutMouseFunc(handleButtonPress);
+	glutSpecialFunc(handleSpecialKeyPress);
 	glutReshapeFunc(handleResize);
 	glutTimerFunc(dt, tickTimer, 0);
 	glutIdleFunc(dance);
