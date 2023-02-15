@@ -54,7 +54,11 @@ Claw rightClaw = {
 	.angleClamp = 0.
 };
 
-float clampIncrement = 3.;
+float clampDelta = 6;
+float armDelta = 3;
+float bodyDelta = 0.1;
+float headDelta = -4.5;
+
 float angleHead = 0.;
 float angleBody = 0.;
 float positionBodyX = 0.;
@@ -126,14 +130,13 @@ void enableLigthing(void) {
 }
 
 void moveClamp(Claw *claw) {
-	
 	if (claw->angleClamp >= 60)
-		clampIncrement = -3.;
-	
+		clampDelta = -fabs(clampDelta);
+		
 	if (claw->angleClamp <= 0)
-		clampIncrement = +3.;
-
-	claw->angleClamp += clampIncrement;
+		clampDelta = +fabs(clampDelta);
+	
+	claw->angleClamp += clampDelta;
 }
 
 void handleSpecialKeyPress(int key, int x, int y) {
@@ -153,6 +156,33 @@ void handleSpecialKeyPress(int key, int x, int y) {
 		break;
 	}
 	glutPostRedisplay();
+}
+
+void resetPose(void) {
+	Claw *left = &leftClaw;
+	Claw *right = &rightClaw;
+	
+	left->angleArmZ = 90.;
+	left->angleArmY = 0.;
+	left->angleArmX = 0.;
+	left->angleForearm = 90.;
+	left->angleClamp = 0.;
+	
+	right->angleArmZ = -90.;
+	right->angleArmY = 0.;
+	right->angleArmX = 0.;
+	right->angleForearm = 90.;
+	right->angleClamp = 0;
+	
+	clampDelta = 6;
+	armDelta = -3;
+	bodyDelta = 0.1;
+	headDelta = -4.5;
+	
+	angleHead = 0.;
+	angleBody = 0.;
+	positionBodyX = 0.;
+	positionBodyY = 0.;
 }
 
 void handleKeypress(unsigned char key, int x, int y) {
@@ -180,8 +210,7 @@ void handleKeypress(unsigned char key, int x, int y) {
 	case 13: // Enter key
 		dancing = 1;
 		danceStart = tick;
-		left->angleClamp = 0;
-		right->angleClamp = 0;
+		resetPose();
 		break;
 		
 	// Left Claw
@@ -467,7 +496,8 @@ void drawScene(void) {
 
 	drawBase(heightBase, diameterBase);
 	
-	glTranslatef(0., 0., heightBase);
+	glTranslatef(positionBodyX, positionBodyY, heightBase);
+	glRotatef(angleBody, 0., 0., 1.);
 	
 	drawBody(diameterWheel, heightBody, diameterBody);
 	
@@ -490,21 +520,59 @@ void drawScene(void) {
 	glutSwapBuffers();
 }
 
+int step = 0;
+
 void dance(void) {
+	if (dancing == 0) return;
+	
 	Claw *left = &leftClaw;
 	Claw *right = &rightClaw;
 	
-	if (dancing == 0) return;
+	int elapsed = tick - danceStart;
+	
+	switch (step) {
+	case 0:
+		angleHead += headDelta;
+		positionBodyY += bodyDelta;
+		left->angleForearm += armDelta;
+		right->angleForearm -= armDelta;
+		
+		if (left->angleForearm >= 120 || left->angleForearm <= 60)
+			armDelta = -armDelta;
+		if (positionBodyY >= 1 || positionBodyY <= -1)
+			bodyDelta = -bodyDelta;
+		if (angleHead >= 45 || angleHead <= -45)
+			headDelta = -headDelta;
+		
+		break;
+		
+	}
 	
 	moveClamp(left);
 	moveClamp(right);
 	
-	int elapsed = tick - danceStart;
+	//angleHead += 3.;
+	//angleBody = 0.;
+	//positionBodyX = 0.;
+	//positionBodyY += .05;
 	
-	if (elapsed > 120) {
+	//left->angleArmZ = 90.;
+	//left->angleArmY += 3.;
+	//left->angleArmX = 0.;
+	//left->angleForearm += 3.;
+	//left->angleClamp = 0.;
+	
+	//right->angleArmZ = -90.;
+	//right->angleArmY += 3.;
+	//right->angleArmX = 0.;
+	//right->angleForearm -= 3.;
+	//right->angleClamp = 0;
+	
+
+	
+	if (elapsed > 300) {
 		dancing = 0;
-		left->angleClamp = 0;
-		right->angleClamp = 0;
+		resetPose();
 	}
 	
 	glutPostRedisplay();
