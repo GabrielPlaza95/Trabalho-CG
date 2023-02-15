@@ -23,8 +23,6 @@ GLUquadric *quadCylinder;
 
 GLfloat fov;
 
-bool textureOn = true;
-
 float viewAngleX = 0.0;
 float viewAngleZ = 15.0;
 
@@ -101,8 +99,8 @@ void enableLigthing(void) {
 	// Ligth source
 	GLfloat ambientLight[4] = { 0.2, 0.2, 0.2, 1.0 };
 	GLfloat difuseLigth[4] = { 0.7, 0.7, 0.7, 1.0 };
-	GLfloat especularLight[4] = { 1.0, 1.0, 1.0, 1.0 };
-	GLfloat ligthPosition[4] = { 0.0, 50.0, 50.0, 1.0 };
+	GLfloat especularLight[4] = { 0.658, 0.941, 0.925, 1.0 };
+	GLfloat ligthPosition[4] = { 0.0, 10.0, 50.0, 1.0 };
 
 	// Eneble ligthing primitive
 	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambientLight);
@@ -115,7 +113,7 @@ void enableLigthing(void) {
 
 	// Material properties
 	GLfloat espec[4] = { 1.0,1.0,1.0,1.0 };
-	GLint especMaterial = 50;
+	GLint especMaterial = 80;
 	glMaterialfv(GL_FRONT, GL_SPECULAR, espec);
 	glMateriali(GL_FRONT, GL_SHININESS, especMaterial);
 	glShadeModel(GL_SMOOTH); 
@@ -142,13 +140,13 @@ void moveClamp(Claw *claw) {
 void handleSpecialKeyPress(int key, int x, int y) {
 	//Comandos de câmera
 	switch (key) {
-	case GLUT_KEY_UP: //Decrease view angle z axis
+	case GLUT_KEY_DOWN: //Decrease view angle z axis
 		viewAngleZ = fmax(viewAngleZ - 3, 0);
 		break;
 	case GLUT_KEY_LEFT: //Decrease view angle x axis
 		viewAngleX = fmod(viewAngleX + 360 - 3, 360);
 		break;
-	case GLUT_KEY_DOWN: //Increase view angle z axis
+	case GLUT_KEY_UP: //Increase view angle z axis
 		viewAngleZ = fmin(viewAngleZ + 3, 180);
 		break;
 	case GLUT_KEY_RIGHT: //Increase view angle x axis
@@ -193,9 +191,6 @@ void handleKeypress(unsigned char key, int x, int y) {
 	switch (key) {
 	case 27: //Escape key
 		exit(0);
-	case 't': //Use texture or not
-		textureOn = !textureOn;
-		break;
 	}
 	
 	if (dancing) {
@@ -299,50 +294,38 @@ void handleResize(int w, int h) {
 }
 
 void drawCylinder(float diameter, float lenght) {
-	if (textureOn) {
-		glBindTexture(GL_TEXTURE_2D, _textureIdCylinder);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		gluQuadricTexture(quadCylinder, 1);
-	}
-	else
-		gluQuadricTexture(quadCylinder, 0);
+	glBindTexture(GL_TEXTURE_2D, _textureIdCylinder);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	gluQuadricTexture(quadCylinder, 1);
+
 	gluCylinder(quadCylinder, diameter / 2., diameter / 2., lenght, 40.0, lenght*30.0);
 }
 
 void drawCone(float diameter, float lenght) {
-	if (textureOn) {
-		glBindTexture(GL_TEXTURE_2D, _textureIdCylinder);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		gluQuadricTexture(quadCylinder, 1);
-	}
-	else
-		gluQuadricTexture(quadCylinder, 0);
+	glBindTexture(GL_TEXTURE_2D, _textureIdCylinder);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	gluQuadricTexture(quadCylinder, 1);
+
 	gluCylinder(quadCylinder, diameter / 2., 0, lenght, 40.0, lenght*30.0);
 }
 
 void drawDisk(float diameterInner, float diameterOuter) {
-	if (textureOn) {
-		glBindTexture(GL_TEXTURE_2D, _textureIdCylinder);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		gluQuadricTexture(quadCylinder, 1);
-	}
-	else
-		gluQuadricTexture(quadCylinder, 0);
+	glBindTexture(GL_TEXTURE_2D, _textureIdCylinder);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	gluQuadricTexture(quadCylinder, 1);
+
 	gluDisk(quadCylinder, diameterInner / 2., diameterOuter / 2., 40.0, 30.0);
 }
 
 void drawSphere(float diameter) {
-	if (textureOn) {
-		glBindTexture(GL_TEXTURE_2D, _textureIdSphere);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		gluQuadricTexture(quadSphere, 1);
-	}
-	else
-		gluQuadricTexture(quadSphere, 0);
+	glBindTexture(GL_TEXTURE_2D, _textureIdSphere);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	gluQuadricTexture(quadSphere, 1);
+
 	gluSphere(quadSphere, diameter / 2., 40.0, 40.0);
 }
 
@@ -521,6 +504,7 @@ void drawScene(void) {
 }
 
 int step = 0;
+int stepStart = 0;
 
 void dance(void) {
 	if (dancing == 0) return;
@@ -543,35 +527,28 @@ void dance(void) {
 			bodyDelta = -bodyDelta;
 		if (angleHead >= 45 || angleHead <= -45)
 			headDelta = -headDelta;
+		if (elapsed - stepStart > 135) {
+			step = 1;
+			stepStart = elapsed;
+		}
 		
 		break;
-		
+	case 1:
+		if (angleBody >= 360) {
+			step = 0;
+			stepStart = elapsed;
+			break;
+		}
+		moveClamp(left);
+		moveClamp(right);
+		angleBody += fabs(headDelta);
+		break;
 	}
 	
-	moveClamp(left);
-	moveClamp(right);
-	
-	//angleHead += 3.;
-	//angleBody = 0.;
-	//positionBodyX = 0.;
-	//positionBodyY += .05;
-	
-	//left->angleArmZ = 90.;
-	//left->angleArmY += 3.;
-	//left->angleArmX = 0.;
-	//left->angleForearm += 3.;
-	//left->angleClamp = 0.;
-	
-	//right->angleArmZ = -90.;
-	//right->angleArmY += 3.;
-	//right->angleArmX = 0.;
-	//right->angleForearm -= 3.;
-	//right->angleClamp = 0;
-	
-
-	
-	if (elapsed > 300) {
+	if (elapsed > 330) {
 		dancing = 0;
+		step = 0;
+		stepStart = 0;
 		resetPose();
 	}
 	
