@@ -294,6 +294,16 @@ void drawHead(float sphereDiameter, float cylinderHeight) {
 	glPopMatrix();
 }
 
+void drawEyes(float sphereDiameter, float heigthEyes) {
+	glPushMatrix();
+		glColor3f(0.72, 1., 0.76);
+		glTranslatef(1., .6, heigthEyes);
+		drawSphere(sphereDiameter);
+		glTranslatef(0., -1.2, 0.);
+		drawSphere(sphereDiameter);
+	glPopMatrix();
+}
+
 void drawClaw(Claw c) {
 	float diameterCylinder = 0.6;
 	float diameterSphere = 0.8;
@@ -378,6 +388,8 @@ void drawScene(void) {
 	float heightBody = 7.5;
 	float diameterHead = 3.5;
 	float heightNeck = 2.5;
+	float diameterEyes = 1.8;
+	float eyes = 2.6;
 	
 	
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -422,6 +434,8 @@ void drawScene(void) {
 	//glTranslatef(0., 0., heightBody * 0.25);
 	
 	drawHead(diameterHead, heightNeck);
+
+	drawEyes(diameterEyes, eyes);
 	
 	glutSwapBuffers();
 }
