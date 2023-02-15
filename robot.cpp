@@ -34,22 +34,31 @@ bool dancing = 0;
 int danceStart = 0;
 
 struct Claw {
-	float angleArm, angleForearm, angleClamp;
+	float angleArmZ, angleArmY, angleArmX;
+	float angleForearm, angleClamp;
 };
 
 Claw leftClaw = {
-	.angleArm = 270.,
+	.angleArmZ = 90.,
+	.angleArmY = 0.,
+	.angleArmX = 0.,
 	.angleForearm = 90.,
 	.angleClamp = 0.
 };
 	
 Claw rightClaw = {
-	.angleArm = 90.,
+	.angleArmZ = -90.,
+	.angleArmY = 0.,
+	.angleArmX = 0.,
 	.angleForearm = 90.,
 	.angleClamp = 0.
 };
 
 float clampIncrement = 3.;
+float angleHead = 0.;
+float angleBody = 0.;
+float positionBodyX = 0.;
+float positionBodyY = 0.;
 
 //makes the image into a texture, and returns the id of the texture
 GLuint loadTexture(char *filename) {
@@ -128,9 +137,6 @@ void moveClamp(Claw *claw) {
 }
 
 void handleSpecialKeyPress(int key, int x, int y) {
-	Claw *left = &leftClaw;
-	Claw *right = &rightClaw;
-	
 	//Comandos de câmera
 	switch (key) {
 	case GLUT_KEY_UP: //Decrease view angle z axis
@@ -169,28 +175,75 @@ void handleKeypress(unsigned char key, int x, int y) {
 	
 	//Comandos de Movimentação do Robô
 	switch (key) {
-	case 13: //Enter starts choreography
+		
+	// Choreography
+	case 13: // Enter key
 		dancing = 1;
 		danceStart = tick;
 		left->angleClamp = 0;
 		right->angleClamp = 0;
 		break;
-	case '1': //Increase left arm angle
-		left->angleArm = fmod(left->angleArm + 3, 360);
+		
+	// Left Claw
+	case 'q':
+		left->angleArmZ = fmin(left->angleArmZ + 3, +90);
 		break;
-	case '2': //Decrease left arm angle
-		left->angleArm = fmod(left->angleArm + 360 - 3, 360);
+	case 'a':
+		left->angleArmZ = fmax(left->angleArmZ - 3, -90);
 		break;
-	case '3': //Increase left forearm angle
-		left->angleForearm = fmin(left->angleForearm + 3, +90);
+	case 'w':
+		left->angleArmY = fmin(left->angleArmY + 3, +60);
 		break;
-	case '4': //Decrease left forearm angle
-		left->angleForearm = fmax(left->angleForearm - 3, -90);
+	case 's':
+		left->angleArmY = fmax(left->angleArmY - 3, -60);
 		break;
-	case '5':
+	case 'e':
+		left->angleArmX = fmin(left->angleArmX + 3, 90);
+		break;
+	case 'd':
+		left->angleArmX = fmax(left->angleArmX - 3, 0);
+		break;
+	case 'r':
+		left->angleForearm = fmin(left->angleForearm + 3, 120);
+		break;
+	case 'f':
+		left->angleForearm = fmax(left->angleForearm - 3, 0);
+		break;
+		
+	// Right Claw
+	case 't':
+		right->angleArmZ = fmax(right->angleArmZ - 3, -90);
+		break;
+	case 'g':
+		right->angleArmZ = fmin(right->angleArmZ + 3, +90);
+		break;
+	case 'y':
+		right->angleArmY = fmin(right->angleArmY + 3, +60);
+		break;
+	case 'h':
+		right->angleArmY = fmax(right->angleArmY - 3, -60);
+		break;
+	case 'u':
+		right->angleArmX = fmax(right->angleArmX - 3, -90);
+		break;
+	case 'j':
+		right->angleArmX = fmin(right->angleArmX + 3, 0);
+		break;
+	case 'i':
+		right->angleForearm = fmin(right->angleForearm + 3, 120);
+		break;
+	case 'k':
+		right->angleForearm = fmax(right->angleForearm - 3, 0);
+		break;
+		
+	// Clamps
+	case '1':
 		moveClamp(left);
 		break;
-	case '6':
+	case '2':
+		moveClamp(right);
+		break;
+	case '3':
 		moveClamp(right);
 		break;
 	}
@@ -213,7 +266,7 @@ void handleResize(int w, int h) {
 	glViewport(0, 0, w, h);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	gluPerspective(fov, (float)w / (float)h, 2.0, 100.0);
+	gluPerspective(fov, (float)w / (float)h, 5.0, 200.0);
 }
 
 void drawCylinder(float diameter, float lenght) {
@@ -316,9 +369,14 @@ void drawClaw(Claw c) {
 	
 	glPushMatrix();
 		// move to arm referential
-		glRotatef(c.angleArm, 0.0f, 0.0f, 1.0f);
+		glRotatef(c.angleArmZ, 0., 0., 1.);
+		glRotatef(c.angleArmY, 0., 1., 0.);
+		glRotatef(c.angleArmX, 1., 0., 0.);
 		
 		//draws the arm
+		glTranslatef(0.0f, 0.0f, diameterSphere / 5);
+		drawSphere(diameterSphere);
+		glTranslatef(0.0f, 0.0f, diameterSphere / 5);
 		drawCylinder(diameterCylinder, sizeArm);
 
 		// move to forearm referential
@@ -382,7 +440,7 @@ void drawClaw(Claw c) {
 
 void drawScene(void) {
 	float heightBase = 0.5;
-	float diameterBase = 15.0;
+	float diameterBase = 60.0;
 	float diameterBody = 10.0;
 	float diameterWheel = diameterBody * 0.5;
 	float heightBody = 7.5;
@@ -420,14 +478,14 @@ void drawScene(void) {
 	glTranslatef(0., 0., heightBody + diameterWheel);
 	
 	glPushMatrix();
-		glTranslatef(0., +0.5 * diameterBody, -0.35 * heightBody);
-		glRotatef(-90., 1., 0., 0.);
+		glTranslatef(0., -0.5 * diameterBody, -0.35 * heightBody);
+		glRotatef(90., 1., 0., 0.);
 		drawClaw(leftClaw);
 	glPopMatrix();
 	
 	glPushMatrix();
-		glTranslatef(0., -0.5 * diameterBody, -0.35 * heightBody);
-		glRotatef(90., 1., 0., 0.);
+		glTranslatef(0., +0.5 * diameterBody, -0.35 * heightBody);
+		glRotatef(-90., 1., 0., 0.);
 		drawClaw(rightClaw);
 	glPopMatrix();
 	
