@@ -244,7 +244,7 @@ void handleKeypress(unsigned char key, int x, int y) {
 		moveClamp(right);
 		break;
 	case '3':
-		moveClamp(right);
+		angleHead = fmod(angleHead + 3, 360);
 		break;
 	}
 	glutPostRedisplay();
@@ -337,23 +337,21 @@ void drawBody(float sphereDiameter, float cylinderHeight, float cylinderDiameter
 	glPopMatrix();
 }
 
-void drawHead(float sphereDiameter, float cylinderHeight) {
-	float cylinderDiameter = 0.6;
+void drawHead(float diameterHead, float heightNeck, float diameterEyes) {
+	float diameterNeck = 0.6;
 	
 	glPushMatrix();
-		drawCylinder(cylinderDiameter, cylinderHeight);
-		glTranslatef(0., 0., cylinderHeight);
-		drawSphere(sphereDiameter);
-	glPopMatrix();
-}
-
-void drawEyes(float sphereDiameter, float heigthEyes) {
-	glPushMatrix();
-		glColor3f(0.72, 1., 0.76);
-		glTranslatef(1., .6, heigthEyes);
-		drawSphere(sphereDiameter);
-		glTranslatef(0., -1.2, 0.);
-		drawSphere(sphereDiameter);
+		glRotatef(angleHead, 0., 0., 1.);
+		drawCylinder(diameterNeck, heightNeck);
+		glTranslatef(0., 0., heightNeck + diameterHead * 0.5);
+		drawSphere(diameterHead);
+		
+		// Draw Eyes
+		glColor3f(.72, 1., .76);
+		glTranslatef(diameterHead * .3, diameterHead * .18, 0.);
+		drawSphere(diameterEyes);
+		glTranslatef(0., -diameterHead * .36, 0.);
+		drawSphere(diameterEyes);
 	glPopMatrix();
 }
 
@@ -445,10 +443,8 @@ void drawScene(void) {
 	float diameterWheel = diameterBody * 0.5;
 	float heightBody = 7.5;
 	float diameterHead = 3.5;
-	float heightNeck = 2.5;
+	float heightNeck = 1.5;
 	float diameterEyes = 1.8;
-	float eyes = 2.6;
-	
 	
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -489,11 +485,7 @@ void drawScene(void) {
 		drawClaw(rightClaw);
 	glPopMatrix();
 	
-	//glTranslatef(0., 0., heightBody * 0.25);
-	
-	drawHead(diameterHead, heightNeck);
-
-	drawEyes(diameterEyes, eyes);
+	drawHead(diameterHead, heightNeck, diameterEyes);
 	
 	glutSwapBuffers();
 }
